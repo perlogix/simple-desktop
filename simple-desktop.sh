@@ -503,7 +503,7 @@ setup_cleanup_script() {
 
   # Install update and cleanup script
   cat <<'EOF' >/opt/simple-desktop/bin/simple-desktop-maintenance.sh
-#!/bin/sh
+#!/bin/bash
 
 # Sync time
 if [ "$(systemctl status systemd-timesyncd.service | grep 'Active: active')" != "" ]; then
@@ -513,7 +513,7 @@ fi
 # Clean unused Docker resources
 if [ "$(command -v docker)" ]; then
     # Update ecs-agent if present
-    if [ $(docker ps | grep amazon/amazon-ecs-agent) != ]; then
+    if [ "$(docker ps | grep amazon/amazon-ecs-agent)" != "" ]; then
         docker pull amazon/amazon-ecs-agent:latest
     fi
     docker system prune -a -f
