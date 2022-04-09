@@ -435,7 +435,7 @@ remove() {
       ;;
 
     bloat)
-      apt remove -y thunderbird transmission-common cheese aisleriot gnome-mahjongg gnome-mines gnome-sudoku remmina
+      apt remove -y thunderbird transmission-common cheese aisleriot gnome-mahjongg gnome-mines gnome-sudoku remmina autofs beep pastebinit popularity-contest whoopsie xinetd yp-tools ypbind
       ;;
 
     theme)
