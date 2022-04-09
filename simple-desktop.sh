@@ -152,14 +152,14 @@ install() {
       cp -f ./btm /usr/bin/
 
       # Install a better ls
-      wget -c https://github.com/Peltoche/lsd/releases/download/0.20.1/lsd-0.20.1-x86_64-unknown-linux-gnu.tar.gz
-      tar -zxvf lsd-0.20.1-x86_64-unknown-linux-gnu.tar.gz
+      wget -c https://github.com/Peltoche/lsd/releases/download/0.21.0/lsd-0.21.0-x86_64-unknown-linux-gnu.tar.gz
+      tar -zxvf lsd-0.21.0-x86_64-unknown-linux-gnu.tar.gz
       cp -f ./lsd-*-x86_64-unknown-linux-gnu/lsd /usr/bin/
 
       # Install a colorful cat
-      wget -c https://github.com/sharkdp/bat/releases/download/v0.18.0/bat-v0.18.0-x86_64-unknown-linux-gnu.tar.gz
-      tar -zxvf bat-v0.18.0-x86_64-unknown-linux-gnu.tar.gz
-      cp -f ./bat-v0.18.0-x86_64-unknown-linux-gnu/bat /usr/bin/
+      wget -c https://github.com/sharkdp/bat/releases/download/v0.20.0/bat-v0.20.0-x86_64-unknown-linux-gnu.tar.gz
+      tar -zxvf bat-v0.20.0-x86_64-unknown-linux-gnu.tar.gz
+      cp -f ./bat-v0.20.0-x86_64-unknown-linux-gnu/bat /usr/bin/
 
       # Install lazydocker
       wget -c https://github.com/jesseduffield/lazydocker/releases/download/v0.12/lazydocker_0.12_Linux_x86_64.tar.gz
@@ -168,13 +168,13 @@ install() {
       cp -f ./lazydocker /usr/bin/
 
       # Install a better colorful diff
-      wget -c https://github.com/dandavison/delta/releases/download/0.7.1/delta-0.7.1-x86_64-unknown-linux-gnu.tar.gz
-      tar -zxvf ./delta-0.7.1-x86_64-unknown-linux-gnu.tar.gz
-      cp -f ./delta-0.7.1-x86_64-unknown-linux-gnu/delta /usr/bin/
+      wget -c https://github.com/dandavison/delta/releases/download/0.12.1/delta-0.12.1-x86_64-unknown-linux-gnu.tar.gz
+      tar -zxvf ./delta-0.12.1-x86_64-unknown-linux-gnu.tar.gz
+      cp -f ./delta-0.12.1-x86_64-unknown-linux-gnu/delta /usr/bin/
 
       # Install procs a colorful ps
-      wget -c https://github.com/dalance/procs/releases/download/v0.11.4/procs-v0.11.4-x86_64-lnx.zip
-      unzip procs-v0.11.4-x86_64-lnx.zip
+      wget -c https://github.com/dalance/procs/releases/download/v0.12.1/procs-v0.12.1-x86_64-lnx.zip
+      unzip procs-v0.12.1-x86_64-lnx.zip
       cp -f ./procs /usr/bin/
 
       # Install network utilization CLI bandwich
@@ -316,6 +316,7 @@ alias diff="delta -s"
 alias docker='sudo docker'
 alias docker-compose='sudo docker-compose'
 alias dpkg='sudo dpkg'
+alias brew_update='brew update; brew upgrade; brew update --cask; brew upgrade --cask; brew cleanup -s; brew doctor; brew missing'
 alias du='du -h'
 alias egrep='egrep --color=auto --exclude-dir={.bzr,CVS,.git,.hg,.svn,.idea,.tox,.vscode,node_modules,vendor,.clangd,__pycache__,.npm,.cache,.composer}'
 alias extract=extract
@@ -367,6 +368,7 @@ alias topfiles='find . -type f -exec du -Sh {} + | sort -rh | head'
 alias topmem='sudo ps -eo pid,ppid,cmd,%mem,%cpu --sort=-%mem | head'
 alias topof='sudo lsof 2>/dev/null | cut -d" " -f1 | sort | uniq -c | sort -r -n | head'
 alias timers='sudo systemctl list-timers --all --no-pager'
+alias tmprm='for n in $(find $HOME -name ".*" -type d | grep "tmp$\|temp$\|cache$"); do find "$n" -type f -delete; done'
 alias tree='lsd --tree'
 alias root='sudo su -'
 alias unmute='amixer set Master unmute && amixer set Headphone unmute'
@@ -487,7 +489,9 @@ rollback() {
   systemctl enable apt-daily-upgrade.timer
   systemctl enable apt-daily-upgrade.service
   systemctl enable fwupd-refresh.timer
-  systemctl disable simple-desktop-maintenance.timer
+  systemctl enable ctrl-alt-del.target
+  systemctl enable debug-shell.service
+  systemctl mask simple-desktop-maintenance.timer
   ufw logging on
   ufw disable
   gnome-extensions disable 'dash-to-panel@jderose9.github.com'
@@ -511,13 +515,15 @@ if [ "$(systemctl status systemd-timesyncd.service | grep 'Active: active')" != 
     systemctl restart systemd-timesyncd.service
 fi
 
-# Clean unused Docker resources
-if [ "$(command -v docker)" ]; then
-    # Update ecs-agent if present
-    if [ "$(docker ps | grep amazon/amazon-ecs-agent)" != "" ]; then
-        docker pull amazon/amazon-ecs-agent:latest
-    fi
-    docker system prune -a -f
+# Update homebrew
+if [ "$(command -v brew)" ]; then
+    brew update
+    brew upgrade
+    brew update --cask
+    brew upgrade --cask
+    brew cleanup -s
+    brew doctor
+    brew missing
 fi
 
 # Update flatpaks
@@ -806,29 +812,41 @@ setup_sysctl() {
   # TODO: Set different values based on RAM size
   cp -f /etc/sysctl.d/99-sysctl.conf /opt/simple-desktop/backup_confs/
   cat <<'EOF' >/etc/sysctl.d/99-sysctl.conf
-fs.aio-max-nr=1048576
+dev.tty.ldisc_autoload=0
 fs.epoll.max_user_watches=12616437
 fs.file-max=9223372036854775807
-fs.file-nr=736 0 9223372036854775807
 fs.inotify.max_queued_events=524288
 fs.inotify.max_user_instances=8192
 fs.inotify.max_user_watches=524288
 fs.nr_open=1073741816
+fs.protected_fifos=2
+fs.protected_regular=2
 fs.suid_dumpable=0
 kernel.core_pattern=/bin/false
+kernel.core_uses_pid=1
 kernel.dmesg_restrict=1
+kernel.kptr_restrict=2
 kernel.panic=5
+kernel.perf_event_paranoid=3
 kernel.pid_max=65536
 kernel.printk=3 3 3 3
+kernel.sysrq=0
+kernel.unprivileged_bpf_disabled=1
+net.core.bpf_jit_harden=2
 net.core.default_qdisc=fq
 net.core.netdev_max_backlog=4096
 net.core.rmem_max=16777216
 net.core.somaxconn=65535
 net.core.wmem_max=16777216
 net.ipv4.conf.all.accept_redirects=0
+net.ipv4.conf.all.forwarding=0
+net.ipv4.conf.all.log_martians=1
 net.ipv4.conf.all.secure_redirects=0
 net.ipv4.conf.all.send_redirects=0
 net.ipv4.conf.default.accept_redirects=0
+net.ipv4.conf.default.accept_source_route=0
+net.ipv4.conf.default.log_martians=1
+net.ipv4.conf.default.rp_filter=1
 net.ipv4.conf.default.secure_redirects=0
 net.ipv4.conf.default.send_redirects=0
 net.ipv4.tcp_congestion_control=bbr
@@ -845,7 +863,9 @@ net.ipv4.tcp_tw_reuse=1
 net.ipv4.tcp_window_scaling=1
 net.ipv4.tcp_wmem=4096 12582912 16777216
 net.ipv6.conf.all.accept_redirects=0
+net.ipv6.conf.all.forwarding=0
 net.ipv6.conf.default.accept_redirects=0
+net.ipv6.conf.default.accept_source_route=0
 vm.dirty_background_ratio=5
 vm.dirty_expire_centisecs=12000
 vm.dirty_ratio=50
@@ -874,6 +894,9 @@ root hard nofile 999999
 * hard stack unlimited
 root soft stack unlimited
 root hard stack unlimited
+
+* hard core 0
+* soft core 0
 EOF
 }
 
@@ -1383,12 +1406,20 @@ setup_base() {
   systemctl disable apt-daily-upgrade.timer
   systemctl disable apt-daily-upgrade.service
   systemctl disable fwupd-refresh.timer
+  systemctl mask ctrl-alt-del.target
+  systemctl mask debug-shell.service
   systemctl --user mask tracker-extract
   systemctl --user mask tracker-miner-fs
   systemctl --user mask tracker-store
 
   # Enable new services
   systemctl enable resolvconf
+
+  # Disable unused network protocols
+  echo "install dccp /bin/true" >>/etc/modprobe.d/blacklist.conf
+  echo "install sctp /bin/true" >>/etc/modprobe.d/blacklist.conf
+  echo "install rds /bin/true" >>/etc/modprobe.d/blacklist.conf
+  echo "install tipc /bin/true" >>/etc/modprobe.d/blacklist.conf
 
   # Install auto-cpufreq or tuned based on device type
   if [[ -f "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor" ]]; then
@@ -1471,6 +1502,7 @@ setup_security() {
   chmod -f og-rwx /etc/ssh/sshd_config
 
   chmod -f 0640 /etc/login.defs
+  chmod -f 0640 /etc/security/access.conf
 
   chown -f root:root /etc/passwd
   chmod -f 0644 /etc/passwd
@@ -1523,10 +1555,14 @@ setup_security() {
   sed -i 's/rotate [0-9]/rotate 1/g' /etc/logrotate.conf
   sed -i 's/weekly\|monthly/daily/g' /etc/logrotate.conf
   sed -i 's/#SystemMaxFiles=100/SystemMaxFiles=7/g' /etc/systemd/journald.conf
+  sed -i 's/^#Storage=.*/Storage=persistent/' /etc/systemd/journald.conf
+  sed -i 's/^#ForwardToSyslog=.*/ForwardToSyslog=yes/' /etc/systemd/journald.conf
+  sed -i 's/^#Compress=.*/Compress=yes/' /etc/systemd/journald.conf
 
   # Disable CrashShell and DumpCore in SystemD
   sed -i 's/^#DumpCore=.*/DumpCore=no/' /etc/systemd/system.conf
   sed -i 's/^#CrashShell=.*/CrashShell=no/' /etc/systemd/system.conf
+  sed -i 's/^#CtrlAltDelBurstAction=.*/CtrlAltDelBurstAction=none/' /etc/systemd/system.conf
 }
 
 setup_simple_desktop() {
