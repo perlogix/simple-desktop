@@ -558,6 +558,9 @@ if [ "$(command -v dpkg)" ]; then
 
   # Remove old Linux source
   dpkg --list | awk '{ print $2 }' | grep linux-source | xargs apt purge -y
+
+  # Purge old/removed packages
+  dpkg -l | awk '/^rc/{print $2}' | xargs apt-get purge -y
 fi
 
 if [ "$(command -v apt)" ]; then
