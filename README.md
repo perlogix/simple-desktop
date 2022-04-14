@@ -13,6 +13,7 @@ Our mission is to make Linux laptops the best option for people building the fut
 3. [Install](#install)
    - [PreReqs](#prereqs)
    - [Run](#run)
+   - [Vagrant](#vagrant)
 4. [Rollback](#rollback)
 5. [Why?](#why)
 6. [Known Issues](#known-issues)
@@ -281,7 +282,15 @@ wget 'https://raw.githubusercontent.com/perlogix/simple-desktop/main/simple-desk
 ### Run
 
 ```sh
-sudo -E ./simple-desktop.sh setup && ./simple-desktop.sh install theme && sudo -E ./simple-desktop.sh install developer && sudo ./simple-desktop.sh install developer && sudo ./simple-desktop.sh remove bloat && sudo ./simple-desktop.sh install cleanup_script && sudo reboot
+sudo -E ./simple-desktop.sh setup && ./simple-desktop.sh install theme && sudo -E ./simple-desktop.sh install developer && sudo ./simple-desktop.sh remove bloat && sudo ./simple-desktop.sh install cleanup_script && sudo reboot
+```
+
+### Vagrant
+
+```sh
+git clone https://github.com/perlogix/simple-desktop.git
+cd simple-desktop
+vagrant up
 ```
 
 ## Rollback

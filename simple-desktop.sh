@@ -191,7 +191,7 @@ install() {
       sh ~/.vim_runtime/install_awesome_vimrc.sh
 
       # Install oh-my-zsh
-      git clone --depth=1 git://github.com/robbyrussell/oh-my-zsh.git ~/.oh-my-zsh
+      sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
       chsh -s "$ZSH" && "$ZSH" -i -c "omz update"
 
       # Install powerlevel10k and oh-my-zsh plugins
@@ -435,7 +435,11 @@ remove() {
       ;;
 
     bloat)
-      apt remove -y thunderbird transmission-common cheese aisleriot gnome-mahjongg gnome-mines gnome-sudoku remmina autofs beep pastebinit popularity-contest whoopsie xinetd yp-tools ypbind
+      for p in gnome-todo thunderbird transmission-common shotwell byobu rhythmbox cheese totem aisleriot gnome-mahjongg gnome-mines gnome-sudoku remmina autofs beep pastebinit popularity-contest whoopsie xinetd yp-tools ypbind; do
+        apt purge -y $p
+      done
+
+      apt autoremove -y
       ;;
 
     theme)
@@ -943,9 +947,6 @@ setup_theme() {
   wget -c https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Italic.ttf
   wget -c https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold%20Italic.ttf
 
-  # Install Desktop background
-  sudo curl -L https://raw.githubusercontent.com/perlogix/simple-desktop/main/simple-desktop-background.png -o /usr/share/backgrounds/simple-desktop-default.png
-
   # Install Vimix Material Design GNOME shell theme
   curl -L https://github.com/vinceliuice/vimix-gtk-themes/archive/master.zip -o vimix.zip
   unzip vimix.zip
@@ -953,7 +954,7 @@ setup_theme() {
   rm -rf vimix*
 
   # Install Dock-to-Panel
-  git clone https://github.com/home-sweet-gnome/dash-to-panel.git
+  git clone https://github.com/home-sweet-gnome/dash-to-panel.git -b gnome-3.38
   cd dash-to-panel || echo "Cannot install Dock-to-Panel" >&2
   make install
   gnome-extensions enable 'dash-to-panel@jderose9.github.com'
@@ -1021,14 +1022,6 @@ categories=['X-SuSE-YaST']
 name='suse-yast.directory'
 translate=true
 
-[org/gnome/desktop/background]
-color-shading-type='solid'
-picture-options='zoom'
-picture-uri='file:///usr/share/backgrounds/simple-desktop-background.png'
-primary-color='#000000'
-secondary-color='#000000'
-show-desktop-icons=false
-
 [org/gnome/desktop/input-sources]
 sources=[('xkb', 'us')]
 xkb-options=@as []
@@ -1040,7 +1033,7 @@ document-font-name='Liberation Sans 12'
 enable-animations=false
 font-name='Liberation Sans 12'
 gtk-im-module='gtk-im-context-simple'
-gtk-theme='vimix-dark-laptop-doder'
+gtk-theme='vimix-dark-doder'
 icon-theme='Papirus-Dark'
 menus-have-icons=true
 monospace-font-name='Liberation Mono 12'
@@ -1083,13 +1076,6 @@ remember-recent-files=false
 remove-old-temp-files=true
 remove-old-trash-files=true
 report-technical-problems=false
-
-[org/gnome/desktop/screensaver]
-color-shading-type='solid'
-picture-options='zoom'
-picture-uri='file:///usr/share/backgrounds/simple-desktop-background.png'
-primary-color='#000000'
-secondary-color='#000000'
 
 [org/gnome/desktop/search-providers]
 disabled=['org.gnome.Terminal.desktop', 'org.gnome.seahorse.Application.desktop', 'org.gnome.Characters.desktop', 'org.gnome.Software.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.Calculator.desktop']
@@ -1298,7 +1284,7 @@ tray-order=1
 tray-pos='center'
 
 [org/gnome/shell/extensions/user-theme]
-name='vimix-dark-laptop-doder'
+name='vimix-dark-doder'
 
 [org/gnome/shell/window-switcher]
 current-workspace-only=true
@@ -1387,13 +1373,17 @@ setup_base() {
   fi
 
   # Update apt cache
-  apt update
+  apt update -y
 
   # Install all the things
   ACCEPT_EULA=Y DEBIAN_FRONTEND=noninteractive apt install -y linux-image-liquorix-amd64 linux-headers-liquorix-amd64 papirus-icon-theme resolvconf curl vim net-tools gnome-tweaks dconf-cli gnome-shell-extensions chrome-gnome-shell gnome-shell-extension-prefs bleachbit ubuntu-restricted-extras ubuntu-restricted-addons inxi rar unrar tar unzip lzip p7zip-full p7zip-rar dmidecode mokutil libarchive-tools make gettext git
 
   # Remove bug / error reporting services
-  apt remove -y whoopsie apport apport-gtk ubuntu-report unattended-upgrades kerneloops plymouth
+  for p in whoopsie apport apport-gtk ubuntu-report unattended-upgrades kerneloops plymouth; do
+    apt purge -y $p
+  done
+
+  apt autoremove -y
 
   # Auto install drivers
   ubuntu-drivers install
@@ -1672,7 +1662,7 @@ case "$1" in
 
   rollback - Revert $0 changes back to default OS configurations and UI settings
 
-  Recommended install: \e[40;38;5;82m sudo -E $0 setup && $0 install theme && sudo -E $0 install developer && sudo $0 install developer && sudo $0 remove bloat && sudo $0 install cleanup_script && sudo reboot \e[0m"
+  Recommended install: \e[40;38;5;82m sudo -E $0 setup && $0 install theme && sudo -E $0 install developer && sudo $0 remove bloat && sudo $0 install cleanup_script && sudo reboot \e[0m"
     ;;
 
 esac
